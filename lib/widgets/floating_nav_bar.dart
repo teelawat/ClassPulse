@@ -14,7 +14,7 @@ class FloatingNavBar extends StatelessWidget {
     _NavItem(icon: Icons.explore_outlined, activeIcon: Icons.explore, label: 'Today'),
     _NavItem(icon: Icons.calendar_month_outlined, activeIcon: Icons.calendar_month, label: 'Schedule'),
     _NavItem(icon: Icons.notifications_none_outlined, activeIcon: Icons.notifications, label: 'Alerts'),
-    _NavItem(icon: Icons.person_outline, activeIcon: Icons.person, label: 'Profile'),
+    _NavItem(icon: Icons.settings_outlined, activeIcon: Icons.settings, label: 'Settings'),
   ];
 
   const FloatingNavBar({

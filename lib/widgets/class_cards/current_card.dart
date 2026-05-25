@@ -26,6 +26,29 @@ class CurrentCard extends StatelessWidget {
     }
   }
 
+  double _getProgressValue() {
+    final partsStart = item.startTime.split(':');
+    final partsEnd = item.endTime.split(':');
+    if (partsStart.length != 2 || partsEnd.length != 2) return 0.5;
+
+    final hourStart = int.tryParse(partsStart[0]) ?? 0;
+    final minuteStart = int.tryParse(partsStart[1]) ?? 0;
+    final hourEnd = int.tryParse(partsEnd[0]) ?? 0;
+    final minuteEnd = int.tryParse(partsEnd[1]) ?? 0;
+
+    final startMinutes = hourStart * 60 + minuteStart;
+    final endMinutes = hourEnd * 60 + minuteEnd;
+    final totalMinutes = endMinutes - startMinutes;
+
+    if (totalMinutes <= 0) return 0.5;
+    final totalSeconds = totalMinutes * 60;
+    final elapsedSeconds = totalSeconds - remainingSeconds;
+
+    if (elapsedSeconds <= 0) return 0.0;
+    if (elapsedSeconds >= totalSeconds) return 1.0;
+    return elapsedSeconds / totalSeconds;
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -46,7 +69,7 @@ class CurrentCard extends StatelessWidget {
             ClipSmoothRect(
               radius: squircleRadius(10),
               child: LinearProgressIndicator(
-                value: remainingSeconds / 1200.0,
+                value: _getProgressValue(),
                 backgroundColor: AppColors.border,
                 color: AppColors.green,
                 minHeight: 8,

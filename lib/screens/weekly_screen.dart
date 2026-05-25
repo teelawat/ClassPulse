@@ -23,7 +23,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
   bool _isLoading = true;
 
   int _getTodayWeekdayIndex() {
-    int w = DateTime.now().weekday;
+    int w = ScheduleManager.getSystemTime().weekday;
     if (w >= 1 && w <= 5) {
       return w - 1;
     }
@@ -89,7 +89,11 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
-            final currentItem = _weeklySchedule[dayIndex]![itemIndex];
+            final rawList = _weeklySchedule[dayIndex] ?? [];
+            final dynamicList = ScheduleManager.getDynamicSchedule(rawList, dayIndex);
+            final currentItem = dynamicList.isNotEmpty && itemIndex < dynamicList.length 
+                ? dynamicList[itemIndex]
+                : _weeklySchedule[dayIndex]![itemIndex];
             final themeColor = _themeColorFor(currentItem);
 
             return Padding(
@@ -782,7 +786,8 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
 
   // Renders scrollable timeline of compact cards
   Widget _buildWeeklyClassListForDay(int dayIndex) {
-    final List<ClassItem> schedule = _weeklySchedule[dayIndex] ?? [];
+    final List<ClassItem> rawSchedule = _weeklySchedule[dayIndex] ?? [];
+    final List<ClassItem> schedule = ScheduleManager.getDynamicSchedule(rawSchedule, dayIndex);
 
     if (schedule.isEmpty) {
       return Center(

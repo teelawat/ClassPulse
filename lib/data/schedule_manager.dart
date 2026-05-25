@@ -26,6 +26,25 @@ class SubjectTheme {
 class ScheduleManager {
   static const String _scheduleKey = 'custom_weekly_schedule';
   static const String _apiKeyKey = 'gemini_api_key';
+
+  static bool isTimeTravelEnabled = false;
+  static DateTime mockDateTime = DateTime.now();
+
+  static DateTime getSystemTime() {
+    if (isTimeTravelEnabled) {
+      return mockDateTime;
+    }
+    return DateTime.now();
+  }
+
+  static void setMockTime(int weekdayIndex, int hour, int minute) {
+    final now = DateTime.now();
+    // Find the date of the current week that matches the selected weekdayIndex (0 = Mon, ..., 4 = Fri)
+    final targetWeekday = weekdayIndex + 1;
+    final difference = targetWeekday - now.weekday;
+    final targetDate = now.add(Duration(days: difference));
+    mockDateTime = DateTime(targetDate.year, targetDate.month, targetDate.day, hour, minute, 0);
+  }
   static const String manualTimetablePrompt = '''
 You are an expert school timetable parser. Extract the weekly schedule from the provided image.
 Map each class to its respective day of the week: monday, tuesday, wednesday, thursday, friday.
@@ -273,6 +292,63 @@ Output only the JSON. Do not include markdown code block wrappers (like ```json)
 
   static Future<void> clearCustomSchedule() async {
     await AppStorage.remove(_scheduleKey);
+  }
+
+  static List<ClassItem> getDynamicSchedule(List<ClassItem> items, int dayIndex) {
+    final now = getSystemTime();
+    final currentWeekdayIndex = now.weekday - 1; // 0 = Mon, ..., 4 = Fri
+    
+    // If it is not today, all classes for this day are considered 'normal'
+    if (currentWeekdayIndex != dayIndex || currentWeekdayIndex < 0 || currentWeekdayIndex > 4) {
+      return items.map((item) => item.copyWith(type: ClassType.normal)).toList();
+    }
+
+    DateTime parseTime(String timeStr) {
+      final parts = timeStr.split(':');
+      if (parts.length != 2) return now;
+      final hour = int.tryParse(parts[0]) ?? 0;
+      final minute = int.tryParse(parts[1]) ?? 0;
+      return DateTime(now.year, now.month, now.day, hour, minute);
+    }
+
+    // First, map everyone to past, current, or normal
+    final updatedItems = items.map((item) {
+      final classStart = parseTime(item.startTime);
+      final classEnd = parseTime(item.endTime);
+
+      ClassType computedType = ClassType.normal;
+      if (now.isAfter(classEnd)) {
+        computedType = ClassType.past;
+      } else if ((now.isAfter(classStart) || now.isAtSameMomentAs(classStart)) &&
+                 (now.isBefore(classEnd) || now.isAtSameMomentAs(classEnd))) {
+        computedType = ClassType.current;
+      }
+
+      return item.copyWith(type: computedType);
+    }).toList();
+
+    // Find the 'next' class
+    // It is the first class of the day that hasn't started yet (i.e. currently 'normal' and start time is in the future)
+    int? nextClassIndex;
+    DateTime? earliestFutureStart;
+
+    for (int i = 0; i < updatedItems.length; i++) {
+      final item = updatedItems[i];
+      final classStart = parseTime(item.startTime);
+
+      if (now.isBefore(classStart) && updatedItems[i].type == ClassType.normal) {
+        if (earliestFutureStart == null || classStart.isBefore(earliestFutureStart)) {
+          earliestFutureStart = classStart;
+          nextClassIndex = i;
+        }
+      }
+    }
+
+    if (nextClassIndex != null) {
+      updatedItems[nextClassIndex] = updatedItems[nextClassIndex].copyWith(type: ClassType.next);
+    }
+
+    return updatedItems;
   }
 
   static Map<int, List<ClassItem>> parseTimetableJson(String rawText) {

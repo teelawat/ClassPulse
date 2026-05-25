@@ -27,15 +27,16 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentTabIndex = 0; // 0 = Today, 1 = Weekly Schedule, etc.
   int _previousTabIndex = 0;
 
-  // State for dynamic countdown timer of the current active class
-  int _remainingSeconds = 1200; // 20 minutes
+  double? _overlayX;
+  double? _overlayY;
+
   Timer? _countdownTimer;
 
   Map<int, List<ClassItem>> _weeklySchedule = {};
   bool _isLoading = true;
 
   int _getTodayWeekdayIndex() {
-    int w = DateTime.now().weekday; // 1 = Monday, ..., 7 = Sunday
+    int w = ScheduleManager.getSystemTime().weekday; // 1 = Monday, ..., 7 = Sunday
     if (w >= 1 && w <= 5) {
       return w - 1; // 0 = Mon, ..., 4 = Fri
     }
@@ -64,13 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _startTimer() {
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
-        setState(() {
-          if (_remainingSeconds > 0) {
-            _remainingSeconds--;
-          } else {
-            _remainingSeconds = 1200; // Reset just for demo persistence
-          }
-        });
+        setState(() {});
       }
     });
   }
@@ -102,7 +97,11 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
-            final currentItem = _weeklySchedule[dayIndex]![itemIndex];
+            final rawList = _weeklySchedule[dayIndex] ?? [];
+            final dynamicList = ScheduleManager.getDynamicSchedule(rawList, dayIndex);
+            final currentItem = dynamicList.isNotEmpty && itemIndex < dynamicList.length 
+                ? dynamicList[itemIndex]
+                : _weeklySchedule[dayIndex]![itemIndex];
             final themeColor = _themeColorFor(currentItem);
 
             return Padding(
@@ -592,9 +591,19 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: () => _showClassDetail(item, dayIndex, itemIndex),
         );
       case ClassType.current:
+        final now = ScheduleManager.getSystemTime();
+        final parts = item.endTime.split(':');
+        int remaining = 0;
+        if (parts.length == 2) {
+          final hour = int.tryParse(parts[0]) ?? 0;
+          final minute = int.tryParse(parts[1]) ?? 0;
+          final classEnd = DateTime(now.year, now.month, now.day, hour, minute);
+          remaining = classEnd.difference(now).inSeconds;
+          if (remaining < 0) remaining = 0;
+        }
         return CurrentCard(
           item: item,
-          remainingSeconds: _remainingSeconds,
+          remainingSeconds: remaining,
           onTap: () => _showClassDetail(item, dayIndex, itemIndex),
         );
       case ClassType.next:
@@ -611,7 +620,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildClassListForDay(int dayIndex) {
-    final List<ClassItem> schedule = _weeklySchedule[dayIndex] ?? [];
+    final List<ClassItem> rawSchedule = _weeklySchedule[dayIndex] ?? [];
+    final List<ClassItem> schedule = ScheduleManager.getDynamicSchedule(rawSchedule, dayIndex);
 
     if (_isLoading) {
       return const Center(
@@ -699,99 +709,144 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildProfilePlaceholder() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Squircle Avatar
-            Container(
-              width: 90,
-              height: 90,
-              decoration: ShapeDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                shape: SmoothRectangleBorder(borderRadius: squircleRadius(24)),
-              ),
-              child: const Icon(
-                Icons.person_outline,
-                size: 48,
-                color: AppColors.primary,
+  Widget _buildSettingsView() {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'ตั้งค่าการใช้งาน',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textDark,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'จัดการตารางเรียนและตั้งค่าจำลองเวลาของแอปพลิเคชัน',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.textLight,
+            ),
+          ),
+          const SizedBox(height: 24),
+          
+          // Section 1: Schedule Management
+          _buildSettingsSectionHeader('จัดการตารางเรียน'),
+          Container(
+            decoration: ShapeDecoration(
+              color: const Color(0xFFF8FAFC),
+              shape: SmoothRectangleBorder(
+                borderRadius: squircleRadius(16),
+                side: const BorderSide(color: AppColors.border),
               ),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'ธีรภัทร (เต้)',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'ชั้นมัธยมศึกษาปีที่ 5/1 • เลขที่ 12',
-              style: TextStyle(
-                fontSize: 14.5,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textMedium,
-              ),
-            ),
-            const SizedBox(height: 24),
-            // Mock Menu Items
-            Container(
-              decoration: ShapeDecoration(
-                color: const Color(0xFFF8FAFC),
-                shape: SmoothRectangleBorder(
-                  borderRadius: squircleRadius(16),
-                  side: const BorderSide(color: AppColors.border),
+            child: Column(
+              children: [
+                _buildSettingsMenuItem(
+                  Icons.add_photo_alternate_outlined,
+                  'นำเข้าตารางเรียนด้วย AI',
+                  onTap: () => _navigateToImport(context),
                 ),
-              ),
-              child: Column(
-                children: [
-                  _buildProfileMenuItem(
-                    Icons.add_photo_alternate_outlined,
-                    'นำเข้าตารางเรียนด้วย AI',
-                    onTap: () => _navigateToImport(context),
-                  ),
-                  _buildProfileMenuItem(
-                    Icons.delete_outline,
-                    'ล้างข้อมูลตารางเรียน',
-                    color: Colors.red,
-                    onTap: _clearSchedule,
-                  ),
-                  _buildProfileMenuItem(
-                    Icons.settings_outlined,
-                    'ตั้งค่าการใช้งาน',
-                  ),
-                  _buildProfileMenuItem(Icons.help_outline, 'ศูนย์ช่วยเหลือ'),
-                  _buildProfileMenuItem(
-                    Icons.logout,
-                    'ออกจากระบบ',
-                    isLast: true,
-                    color: Colors.red,
-                  ),
-                ],
+                _buildSettingsMenuItem(
+                  Icons.delete_outline,
+                  'ล้างข้อมูลตารางเรียน',
+                  color: Colors.red,
+                  onTap: _clearSchedule,
+                  isLast: true,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Section 2: For Developers
+          _buildSettingsSectionHeader('สำหรับนักพัฒนาซอฟต์แวร์'),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: ShapeDecoration(
+              color: const Color(0xFFF8FAFC),
+              shape: SmoothRectangleBorder(
+                borderRadius: squircleRadius(16),
+                side: const BorderSide(color: AppColors.border),
               ),
             ),
-          ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.developer_mode, color: AppColors.primary, size: 24),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'โหมดตั้งเวลาทดสอบ',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                          Text(
+                            'เปิดหน้าต่างจำลองวันเวลาสำหรับตรวจสอบ UI คาบเรียน',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textLight,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch.adaptive(
+                      value: ScheduleManager.isTimeTravelEnabled,
+                      activeTrackColor: AppColors.primary,
+                      onChanged: (value) {
+                        setState(() {
+                          ScheduleManager.isTimeTravelEnabled = value;
+                          if (value) {
+                            final now = DateTime.now();
+                            int weekdayIdx = now.weekday - 1;
+                            if (weekdayIdx < 0 || weekdayIdx > 4) weekdayIdx = 0; // Mon-Fri clamp
+                            ScheduleManager.setMockTime(weekdayIdx, now.hour, now.minute);
+                          }
+                          int todayIndex = _getTodayWeekdayIndex();
+                          _selectedDayIndex = todayIndex == -1 ? 0 : todayIndex;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 100), // Leave space for FloatingNavBar
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingsSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.bold,
+          color: AppColors.primary,
+          letterSpacing: 0.5,
         ),
       ),
     );
   }
 
-  Future<void> _navigateToImport(BuildContext context) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const ImportScreen()),
-    );
-    if (result == true) {
-      _loadSchedule();
-    }
-  }
-
-  Widget _buildProfileMenuItem(
+  Widget _buildSettingsMenuItem(
     IconData icon,
     String title, {
     bool isLast = false,
@@ -827,6 +882,273 @@ class _HomeScreenState extends State<HomeScreen> {
         if (!isLast) const Divider(height: 1, indent: 50, endIndent: 16),
       ],
     );
+  }
+
+  void _updateMockTime(int weekdayIdx, int hour, int minute) {
+    setState(() {
+      ScheduleManager.setMockTime(weekdayIdx, hour, minute);
+      int todayIndex = _getTodayWeekdayIndex();
+      _selectedDayIndex = todayIndex == -1 ? 0 : todayIndex;
+    });
+  }
+
+  Widget _buildTimeTravelSimulatorOverlay() {
+    final size = MediaQuery.of(context).size;
+    const cardWidth = 310.0;
+    const cardHeight = 310.0;
+    
+    if (_overlayX == null || _overlayY == null) {
+      _overlayX = size.width - cardWidth - 16;
+      _overlayY = 100.0;
+    }
+    
+    // Clamp to ensure it doesn't go off-screen
+    _overlayX = _overlayX!.clamp(0.0, (size.width - cardWidth).clamp(0.0, size.width));
+    _overlayY = _overlayY!.clamp(0.0, (size.height - cardHeight).clamp(0.0, size.height));
+    
+    final systemTime = ScheduleManager.getSystemTime();
+    final hour = systemTime.hour;
+    final minute = systemTime.minute;
+    final weekdayIdx = systemTime.weekday - 1; // 0 = Mon, ..., 6 = Sun
+    
+    // Clamp weekdayIdx to 0-4 for Mon-Fri simulation
+    final activeWeekdayIdx = weekdayIdx >= 0 && weekdayIdx <= 4 ? weekdayIdx : 0;
+
+    return Positioned(
+      left: _overlayX,
+      top: _overlayY,
+      child: GestureDetector(
+        onPanUpdate: (details) {
+          setState(() {
+            _overlayX = (_overlayX! + details.delta.dx).clamp(0.0, (size.width - cardWidth).clamp(0.0, size.width));
+            _overlayY = (_overlayY! + details.delta.dy).clamp(0.0, (size.height - cardHeight).clamp(0.0, size.height));
+          });
+        },
+        child: Container(
+          width: cardWidth,
+          decoration: ShapeDecoration(
+            color: Colors.white,
+            shape: SmoothRectangleBorder(
+              borderRadius: squircleRadius(16),
+              side: const BorderSide(color: AppColors.border, width: 1.5),
+            ),
+            shadows: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title Bar
+                  Row(
+                    children: [
+                      const Icon(Icons.bolt, color: AppColors.orange, size: 20),
+                      const SizedBox(width: 6),
+                      const Expanded(
+                        child: Text(
+                          'จำลองเวลา (Time Travel)',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            ScheduleManager.isTimeTravelEnabled = false;
+                            int todayIndex = _getTodayWeekdayIndex();
+                            _selectedDayIndex = todayIndex == -1 ? 0 : todayIndex;
+                          });
+                        },
+                        child: const Icon(Icons.close, size: 18, color: AppColors.textMuted),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 12, color: AppColors.border),
+                  
+                  // Day Selector chips
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'วันจำลอง:',
+                        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textLight),
+                      ),
+                      Text(
+                        activeWeekdayIdx == 0 ? 'วันจันทร์' :
+                        activeWeekdayIdx == 1 ? 'วันอังคาร' :
+                        activeWeekdayIdx == 2 ? 'วันพุธ' :
+                        activeWeekdayIdx == 3 ? 'วันพฤหัสบดี' : 'วันศุกร์',
+                        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.primary),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(5, (index) {
+                      final days = ['จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.'];
+                      final isSelected = activeWeekdayIdx == index;
+                      return GestureDetector(
+                        onTap: () {
+                          _updateMockTime(index, hour, minute);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: ShapeDecoration(
+                            color: isSelected ? AppColors.primary : const Color(0xFFF1F5F9),
+                            shape: SmoothRectangleBorder(borderRadius: squircleRadius(8)),
+                          ),
+                          child: Text(
+                            days[index],
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected ? Colors.white : AppColors.textMedium,
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                  const SizedBox(height: 10),
+                  
+                  // Hour Slider
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'ชั่วโมง:',
+                        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textLight),
+                      ),
+                      Text(
+                        '${hour.toString().padLeft(2, '0')} น.',
+                        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                      ),
+                    ],
+                  ),
+                  SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      trackHeight: 3,
+                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                    ),
+                    child: Slider(
+                      value: hour.toDouble(),
+                      min: 0,
+                      max: 23,
+                      divisions: 23,
+                      activeColor: AppColors.primary,
+                      inactiveColor: const Color(0xFFE2E8F0),
+                      onChanged: (val) {
+                        _updateMockTime(activeWeekdayIdx, val.round(), minute);
+                      },
+                    ),
+                  ),
+                  
+                  // Minute Slider
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'นาที:',
+                        style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppColors.textLight),
+                      ),
+                      Text(
+                        '${minute.toString().padLeft(2, '0')} นาที',
+                        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textDark),
+                      ),
+                    ],
+                  ),
+                  SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      trackHeight: 3,
+                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                    ),
+                    child: Slider(
+                      value: minute.toDouble(),
+                      min: 0,
+                      max: 59,
+                      divisions: 59,
+                      activeColor: AppColors.primary,
+                      inactiveColor: const Color(0xFFE2E8F0),
+                      onChanged: (val) {
+                        _updateMockTime(activeWeekdayIdx, hour, val.round());
+                      },
+                    ),
+                  ),
+                  
+                  const Divider(height: 12, color: AppColors.border),
+                  
+                  // Presets
+                  const Text(
+                    'ทางลัดคาบเรียน:',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textLight),
+                  ),
+                  const SizedBox(height: 4),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildPresetChip('08:30 คาบ 1', () => _updateMockTime(activeWeekdayIdx, 8, 30)),
+                        const SizedBox(width: 6),
+                        _buildPresetChip('12:10 เที่ยง', () => _updateMockTime(activeWeekdayIdx, 12, 10)),
+                        const SizedBox(width: 6),
+                        _buildPresetChip('15:30 เลิกเรียน', () => _updateMockTime(activeWeekdayIdx, 15, 30)),
+                        const SizedBox(width: 6),
+                        _buildPresetChip('17:00 เย็น', () => _updateMockTime(activeWeekdayIdx, 17, 0)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPresetChip(String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: ShapeDecoration(
+          color: const Color(0xFFF1F5F9),
+          shape: SmoothRectangleBorder(
+            borderRadius: squircleRadius(6),
+            side: const BorderSide(color: AppColors.border),
+          ),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textMedium),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _navigateToImport(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ImportScreen()),
+    );
+    if (result == true) {
+      _loadSchedule();
+    }
   }
 
   bool get _isScheduleEmpty =>
@@ -981,11 +1303,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         );
       case 1:
-        return const WeeklyScreen();
+        return WeeklyScreen(key: ValueKey(ScheduleManager.getSystemTime().weekday));
       case 2:
         return _buildAlertsPlaceholder();
       case 3:
-        return _buildProfilePlaceholder();
+        return _buildSettingsView();
       default:
         return const SizedBox.shrink();
     }
@@ -1085,6 +1407,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
             ),
+            // Time Travel Simulator Floating Overlay
+            if (ScheduleManager.isTimeTravelEnabled)
+              _buildTimeTravelSimulatorOverlay(),
           ],
         ),
       ),
