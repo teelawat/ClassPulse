@@ -71,3 +71,57 @@ ThemeData buildAppTheme(TextTheme base) => ThemeData(
         ),
       ),
     );
+
+/// Global Helper to generate standard high-fidelity icons based on mapped subject keywords.
+Widget buildClassIcon(String? iconName, Color color, {double size = 32, bool whiteColor = false}) {
+  final Color iconColor = whiteColor ? Colors.white : color;
+
+  switch (iconName) {
+    case 'science':
+      return Icon(Icons.science_outlined, color: iconColor, size: size);
+    case 'math':
+      return Icon(Icons.calculate_outlined, color: iconColor, size: size);
+    case 'english':
+      return Stack(
+        alignment: Alignment.center,
+        children: [
+          Icon(Icons.chat_bubble_outline, color: iconColor, size: size),
+          Positioned(
+            top: size * 0.16,
+            child: Text(
+              'EN',
+              style: GoogleFonts.outfit(
+                color: iconColor,
+                fontWeight: FontWeight.bold,
+                fontSize: size * 0.28,
+              ),
+            ),
+          ),
+        ],
+      );
+    case 'thai':
+      return Padding(
+        padding: const EdgeInsets.only(right: 4.0),
+        child: Text(
+          'ญ',
+          style: TextStyle(
+            color: whiteColor ? const Color(0x3BFFFFFF) : color.withValues(alpha: 0.25),
+            fontSize: size * 1.15,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+    case 'history':
+      return Icon(Icons.account_balance_outlined, color: iconColor, size: size);
+    case 'computer':
+      return Icon(Icons.computer_outlined, color: iconColor, size: size);
+    case 'sports':
+      return Icon(Icons.sports_soccer_outlined, color: iconColor, size: size);
+    case 'art':
+      return Icon(Icons.palette_outlined, color: iconColor, size: size);
+    case 'homeroom':
+      return Icon(Icons.waving_hand_outlined, color: iconColor, size: size);
+    default:
+      return Icon(Icons.school_outlined, color: iconColor, size: size);
+  }
+}
