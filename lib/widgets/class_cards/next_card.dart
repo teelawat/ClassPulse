@@ -1,6 +1,5 @@
 import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../models/class_item.dart';
 import '../../theme/app_theme.dart';
 
@@ -14,30 +13,6 @@ class NextCard extends StatelessWidget {
     required this.item,
     this.onTap,
   });
-
-  Widget _buildENSpeechBubble() {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        const Icon(
-          Icons.chat_bubble_outline,
-          size: 36,
-          color: AppColors.orangeDark,
-        ),
-        Positioned(
-          top: 7,
-          child: Text(
-            'EN',
-            style: GoogleFonts.outfit(
-              color: AppColors.orangeDark,
-              fontWeight: FontWeight.bold,
-              fontSize: 10,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -129,7 +104,7 @@ class NextCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        _buildENSpeechBubble(),
+                        buildClassIcon(item.iconName, AppColors.orangeDark, size: 36),
                       ],
                     ),
                   ),

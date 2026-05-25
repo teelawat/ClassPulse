@@ -6,13 +6,13 @@ import '../../theme/app_theme.dart';
 /// Card widget for normal classes (e.g. Thai, History) with customizable theme, card, text colors, and icon.
 class NormalCard extends StatelessWidget {
   final ClassItem item;
-  final Widget icon;
+  final Widget? icon;
   final VoidCallback? onTap;
 
   const NormalCard({
     super.key,
     required this.item,
-    required this.icon,
+    this.icon,
     this.onTap,
   });
 
@@ -107,7 +107,7 @@ class NormalCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    icon,
+                    icon ?? buildClassIcon(item.iconName, themeColor, whiteColor: true, size: 32),
                   ],
                 ),
               ),

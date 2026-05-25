@@ -14,14 +14,6 @@ class PastCard extends StatelessWidget {
     this.onTap,
   });
 
-  Widget _buildWavingHandIcon() {
-    return const Icon(
-      Icons.waving_hand_outlined,
-      size: 32,
-      color: Color(0xFF94A3B8),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -108,7 +100,7 @@ class PastCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    _buildWavingHandIcon(),
+                    buildClassIcon(item.iconName, AppColors.textMuted, size: 32),
                   ],
                 ),
               ),

@@ -10,11 +10,7 @@ class CompactCard extends StatelessWidget {
   final ClassItem item;
   final VoidCallback? onTap;
 
-  const CompactCard({
-    super.key,
-    required this.item,
-    this.onTap,
-  });
+  const CompactCard({super.key, required this.item, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -30,40 +26,37 @@ class CompactCard extends StatelessWidget {
         bodyColor = AppColors.surface;
         textColor = AppColors.textMuted;
         subtextColor = AppColors.textMuted;
-        icon = const Icon(Icons.waving_hand_outlined, size: 20, color: AppColors.textMuted);
+        icon = buildClassIcon(
+          item.iconName ?? 'homeroom',
+          AppColors.textMuted,
+          size: 20,
+        );
         break;
       case ClassType.current:
         borderColor = AppColors.green;
         bodyColor = AppColors.greenBg;
         textColor = AppColors.greenDark;
         subtextColor = const Color(0xFF15803D).withValues(alpha: 0.8);
-        icon = const Icon(Icons.science_outlined, size: 24, color: AppColors.green);
+        icon = buildClassIcon(item.iconName, AppColors.green, size: 24);
         break;
       case ClassType.next:
         borderColor = AppColors.orange;
         bodyColor = AppColors.orangeLight;
         textColor = AppColors.orangeText;
         subtextColor = AppColors.orangeText.withValues(alpha: 0.8);
-        icon = const Icon(Icons.chat_bubble_outline, size: 22, color: AppColors.orangeDark);
+        icon = buildClassIcon(item.iconName, AppColors.orangeDark, size: 22);
         break;
       case ClassType.normal:
         borderColor = item.themeColor ?? AppColors.blue;
         bodyColor = item.cardColor ?? AppColors.blue;
         textColor = item.textColor ?? Colors.white;
         subtextColor = textColor.withValues(alpha: 0.85);
-        icon = item.themeColor == AppColors.purple
-            ? const Icon(Icons.account_balance, color: Colors.white, size: 20)
-            : const Padding(
-                padding: EdgeInsets.only(right: 2.0),
-                child: Text(
-                  'ญ',
-                  style: TextStyle(
-                    color: Color(0x3BFFFFFF),
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              );
+        icon = buildClassIcon(
+          item.iconName,
+          borderColor,
+          size: 20,
+          whiteColor: true,
+        );
         break;
     }
 
@@ -75,7 +68,7 @@ class CompactCard extends StatelessWidget {
           child: Container(
             height: 62,
             decoration: ShapeDecoration(
-              color: item.type == ClassType.normal ? bodyColor : Colors.white,
+              color: Colors.white,
               shape: SmoothRectangleBorder(
                 borderRadius: squircleRadius(12),
                 side: BorderSide(color: borderColor, width: 1.5),
@@ -95,7 +88,7 @@ class CompactCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: item.type == ClassType.normal ? Colors.white : AppColors.textDark,
+                          color: AppColors.textDark,
                         ),
                       ),
                       const SizedBox(height: 1),
@@ -104,34 +97,33 @@ class CompactCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: item.type == ClassType.normal ? Colors.white.withValues(alpha: 0.8) : AppColors.textLight,
+                          color: AppColors.textLight,
                         ),
                       ),
                     ],
                   ),
                 ),
-                // Divider line if not normal card
-                if (item.type != ClassType.normal)
-                  Container(
-                    width: 1.5,
-                    height: 32,
-                    color: borderColor.withValues(alpha: 0.4),
-                  ),
+                Container(
+                  width: 1.5,
+                  height: 32,
+                  color: borderColor.withValues(alpha: 0.4),
+                ),
                 // Right Card Body (Subject & Teacher)
                 Expanded(
                   child: Container(
-                    decoration: item.type == ClassType.normal
-                        ? null
-                        : ShapeDecoration(
-                            color: bodyColor,
-                            shape: SmoothRectangleBorder(
-                              borderRadius: squircleRadiusOnly(
-                                topRight: 10,
-                                bottomRight: 10,
-                              ),
-                            ),
-                          ),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: ShapeDecoration(
+                      color: bodyColor,
+                      shape: SmoothRectangleBorder(
+                        borderRadius: squircleRadiusOnly(
+                          topRight: 10,
+                          bottomRight: 10,
+                        ),
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 6,
+                    ),
                     child: Row(
                       children: [
                         Expanded(
@@ -182,7 +174,9 @@ class CompactCard extends StatelessWidget {
   Widget _buildTaskAttachment(ClassTask task) {
     final emoji = task.type == TaskType.homework ? '📝' : '⚡';
     final taskTypeName = task.type == TaskType.homework ? 'การบ้าน' : 'สอบย่อย';
-    final taskColor = task.type == TaskType.homework ? AppColors.orange : AppColors.red;
+    final taskColor = task.type == TaskType.homework
+        ? AppColors.orange
+        : AppColors.red;
 
     return Padding(
       padding: const EdgeInsets.only(left: 45, top: 4, bottom: 2),
@@ -204,7 +198,10 @@ class CompactCard extends StatelessWidget {
               color: taskColor.withValues(alpha: 0.08),
               shape: SmoothRectangleBorder(
                 borderRadius: squircleRadius(4),
-                side: BorderSide(color: taskColor.withValues(alpha: 0.2), width: 1),
+                side: BorderSide(
+                  color: taskColor.withValues(alpha: 0.2),
+                  width: 1,
+                ),
               ),
             ),
             child: Text(

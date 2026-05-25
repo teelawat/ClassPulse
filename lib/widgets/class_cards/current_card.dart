@@ -104,11 +104,7 @@ class CurrentCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Icon(
-                  Icons.science_outlined,
-                  size: 38,
-                  color: AppColors.green,
-                ),
+                buildClassIcon(item.iconName, AppColors.green, size: 38),
               ],
             ),
           ],
