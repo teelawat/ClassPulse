@@ -4,6 +4,9 @@
 *.pyc
 *.swp
 .DS_Store
+.env
+.env.*
+!.env.example
 .atom/
 .build/
 .buildlog/
@@ -43,3 +46,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local scripts (built and run locally, ignored from git)
+run_app.bat
+build_apk_32.bat
