@@ -4,9 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:window_manager/window_manager.dart';
 import 'app.dart';
+import 'data/app_storage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialise persistent storage (replaces SharedPreferences)
+  await AppStorage.init();
 
   if (!kIsWeb && Platform.isAndroid) {
     try {
