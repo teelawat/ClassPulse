@@ -1015,6 +1015,48 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Divider(height: 1, color: AppColors.border),
+                ),
+                InkWell(
+                  onTap: () async {
+                    await NotificationService.showTestNotification();
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.notification_important_outlined, color: AppColors.primary, size: 24),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'ทดสอบส่งการแจ้งเตือน',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textDark,
+                                ),
+                              ),
+                              Text(
+                                'ส่งแจ้งเตือนจำลองไปยังอุปกรณ์นี้ทันที',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textLight,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.arrow_forward_ios, color: AppColors.textLight, size: 14),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

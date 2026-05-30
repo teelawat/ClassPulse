@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.classpulse" "\0"
-            VALUE "FileDescription", "class_pulse" "\0"
+            VALUE "FileDescription", "ClassPulse" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "class_pulse" "\0"
+            VALUE "InternalName", "ClassPulse" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.classpulse. All rights reserved." "\0"
-            VALUE "OriginalFilename", "class_pulse.exe" "\0"
-            VALUE "ProductName", "class_pulse" "\0"
+            VALUE "OriginalFilename", "ClassPulse.exe" "\0"
+            VALUE "ProductName", "ClassPulse" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

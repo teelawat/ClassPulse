@@ -332,6 +332,41 @@ class NotificationService {
     }
   }
 
+  /// Trigger an immediate test notification.
+  static Future<void> showTestNotification() async {
+    if (kIsWeb) return;
+
+    const title = 'ทดสอบการแจ้งเตือน 🔔';
+    const body = 'ยินดีด้วย! ระบบแจ้งเตือนของ ClassPulse ทำงานได้อย่างถูกต้องแล้ว';
+
+    if (Platform.isWindows) {
+      _showWindowsNotification(title, body);
+    } else if (Platform.isAndroid || Platform.isIOS) {
+      try {
+        await _mobileNotificationsPlugin.show(
+          999, // Unique test notification ID
+          title,
+          body,
+          const NotificationDetails(
+            android: AndroidNotificationDetails(
+              'class_pulse_test_reminders',
+              'Test Reminders',
+              channelDescription: 'Used for manual testing from developer menu.',
+              importance: Importance.max,
+              priority: Priority.high,
+            ),
+            iOS: DarwinNotificationDetails(
+              presentAlert: true,
+              presentSound: true,
+            ),
+          ),
+        );
+      } catch (e) {
+        debugPrint('Error showing mobile test notification: $e');
+      }
+    }
+  }
+
   /// Helper to trigger a native Windows toast notification.
   static void _showWindowsNotification(String title, String body) {
     try {

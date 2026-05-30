@@ -10,11 +10,11 @@ import 'services/notification_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialise persistent storage (replaces SharedPreferences)
-  await AppStorage.init();
-
-  // Initialize Notifications
-  await NotificationService.init();
+  // Parallel initialization of services to optimize app launch speed
+  await Future.wait([
+    AppStorage.init(),
+    NotificationService.init(),
+  ]);
 
   if (!kIsWeb && Platform.isAndroid) {
     try {
