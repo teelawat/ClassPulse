@@ -55,6 +55,12 @@ class ClassItem {
   /// Tasks or homework associated with this class.
   final List<ClassTask> tasks;
 
+  /// Period number (e.g. 1, 2, 3) mapped by AI or manually.
+  final int? periodNumber;
+
+  /// Indicates if this item is a break (e.g. lunch break).
+  final bool isBreak;
+
   const ClassItem({
     required this.startTime,
     required this.endTime,
@@ -66,6 +72,8 @@ class ClassItem {
     this.textColor,
     this.iconName,
     this.tasks = const [],
+    this.periodNumber,
+    this.isBreak = false,
   });
 
   ClassItem copyWith({
@@ -79,6 +87,8 @@ class ClassItem {
     Color? textColor,
     String? iconName,
     List<ClassTask>? tasks,
+    int? periodNumber,
+    bool? isBreak,
   }) {
     return ClassItem(
       startTime: startTime ?? this.startTime,
@@ -91,6 +101,8 @@ class ClassItem {
       textColor: textColor ?? this.textColor,
       iconName: iconName ?? this.iconName,
       tasks: tasks ?? this.tasks,
+      periodNumber: periodNumber ?? this.periodNumber,
+      isBreak: isBreak ?? this.isBreak,
     );
   }
 
@@ -107,6 +119,8 @@ class ClassItem {
         'textColor': textColor?.toARGB32(),
         'iconName': iconName,
         'tasks': tasks.map((t) => t.toJson()).toList(),
+        'periodNumber': periodNumber,
+        'isBreak': isBreak,
       };
 
   factory ClassItem.fromJson(Map<String, dynamic> json) {
@@ -124,6 +138,8 @@ class ClassItem {
               ?.map((t) => ClassTask.fromJson(t as Map<String, dynamic>))
               .toList() ??
           const [],
+      periodNumber: json['periodNumber'] as int?,
+      isBreak: json['isBreak'] as bool? ?? false,
     );
   }
 
@@ -136,6 +152,8 @@ class ClassItem {
     required String teacher,
     String? iconName,
     List<ClassTask> tasks = const [],
+    int? periodNumber,
+    bool isBreak = false,
   }) =>
       ClassItem(
         startTime: startTime,
@@ -145,6 +163,8 @@ class ClassItem {
         type: ClassType.past,
         iconName: iconName,
         tasks: tasks,
+        periodNumber: periodNumber,
+        isBreak: isBreak,
       );
 
   factory ClassItem.current({
@@ -154,6 +174,8 @@ class ClassItem {
     String endTime = '10:10',
     String? iconName,
     List<ClassTask> tasks = const [],
+    int? periodNumber,
+    bool isBreak = false,
   }) =>
       ClassItem(
         startTime: startTime,
@@ -163,6 +185,8 @@ class ClassItem {
         type: ClassType.current,
         iconName: iconName,
         tasks: tasks,
+        periodNumber: periodNumber,
+        isBreak: isBreak,
       );
 
   factory ClassItem.next({
@@ -172,6 +196,8 @@ class ClassItem {
     required String teacher,
     String? iconName,
     List<ClassTask> tasks = const [],
+    int? periodNumber,
+    bool isBreak = false,
   }) =>
       ClassItem(
         startTime: startTime,
@@ -181,6 +207,8 @@ class ClassItem {
         type: ClassType.next,
         iconName: iconName,
         tasks: tasks,
+        periodNumber: periodNumber,
+        isBreak: isBreak,
       );
 
   factory ClassItem.normal({
@@ -193,6 +221,8 @@ class ClassItem {
     Color textColor = Colors.white,
     String? iconName,
     List<ClassTask> tasks = const [],
+    int? periodNumber,
+    bool isBreak = false,
   }) =>
       ClassItem(
         startTime: startTime,
@@ -205,5 +235,7 @@ class ClassItem {
         textColor: textColor,
         iconName: iconName,
         tasks: tasks,
+        periodNumber: periodNumber,
+        isBreak: isBreak,
       );
 }

@@ -373,17 +373,15 @@ class _ImportScreenState extends State<ImportScreen> {
                 final theme = ScheduleManager.detectSubjectTheme(newSubject);
 
                 setState(() {
-                  _parsedWeek![dayIndex]![itemIndex] = ClassItem(
+                  _parsedWeek![dayIndex]![itemIndex] = item.copyWith(
                     startTime: newStart,
                     endTime: newEnd,
                     subject: newSubject,
                     teacher: newTeacher,
-                    type: item.type,
                     themeColor: theme.themeColor,
                     cardColor: theme.cardColor,
                     textColor: theme.textColor,
                     iconName: theme.iconName,
-                    tasks: item.tasks,
                   );
                 });
 
@@ -421,7 +419,47 @@ class _ImportScreenState extends State<ImportScreen> {
       separatorBuilder: (context, index) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final item = list[index];
-        final theme = ScheduleManager.detectSubjectTheme(item.subject);
+        final theme = ScheduleManager.detectSubjectTheme(item.subject, isBreak: item.isBreak);
+
+        if (item.isBreak) {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: ShapeDecoration(
+              color: const Color(0xFFF8FAFC),
+              shape: SmoothRectangleBorder(
+                borderRadius: squircleRadius(12),
+                side: const BorderSide(color: AppColors.border, width: 1.2),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.coffee_outlined,
+                  color: AppColors.textLight,
+                  size: 18,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  item.subject,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textMedium,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '${item.startTime} - ${item.endTime} น.',
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textLight,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
 
         return InkWell(
           onTap: () => _editClassItem(dayIndex, index),
@@ -478,7 +516,7 @@ class _ImportScreenState extends State<ImportScreen> {
                           color: item.type == ClassType.normal
                               ? (item.textColor ?? Colors.white).withValues(
                                   alpha: 0.8,
-                                )
+                                  )
                               : AppColors.textLight,
                         ),
                         maxLines: 1,
@@ -488,12 +526,28 @@ class _ImportScreenState extends State<ImportScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                buildClassIcon(
-                  item.iconName,
-                  theme.themeColor,
-                  size: 24,
-                  whiteColor: item.type == ClassType.normal,
-                ),
+                if (item.periodNumber != null)
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: ShapeDecoration(
+                      color: item.type == ClassType.normal
+                          ? Colors.white.withValues(alpha: 0.2)
+                          : theme.themeColor.withValues(alpha: 0.12),
+                      shape: SmoothRectangleBorder(borderRadius: squircleRadius(6)),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '${item.periodNumber}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: item.type == ClassType.normal
+                            ? (item.textColor ?? Colors.white)
+                            : theme.themeColor,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

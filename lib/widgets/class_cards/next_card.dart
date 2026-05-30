@@ -7,11 +7,13 @@ import '../../theme/app_theme.dart';
 class NextCard extends StatelessWidget {
   final ClassItem item;
   final VoidCallback? onTap;
+  final int? periodNumber;
 
   const NextCard({
     super.key,
     required this.item,
     this.onTap,
+    this.periodNumber,
   });
 
   @override
@@ -104,7 +106,24 @@ class NextCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        buildClassIcon(item.iconName, AppColors.orangeDark, size: 36),
+                        if (periodNumber != null)
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: ShapeDecoration(
+                              color: AppColors.orangeDark.withValues(alpha: 0.15),
+                              shape: SmoothRectangleBorder(borderRadius: squircleRadius(10)),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              '$periodNumber',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.orangeText,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),

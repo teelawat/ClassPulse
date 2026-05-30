@@ -8,12 +8,14 @@ class CurrentCard extends StatelessWidget {
   final ClassItem item;
   final int remainingSeconds;
   final VoidCallback? onTap;
+  final int? periodNumber;
 
   const CurrentCard({
     super.key,
     required this.item,
     required this.remainingSeconds,
     this.onTap,
+    this.periodNumber,
   });
 
   String _formatRemainingTime() {
@@ -127,7 +129,24 @@ class CurrentCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                buildClassIcon(item.iconName, AppColors.green, size: 38),
+                if (periodNumber != null)
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: ShapeDecoration(
+                      color: AppColors.green.withValues(alpha: 0.15),
+                      shape: SmoothRectangleBorder(borderRadius: squircleRadius(10)),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '$periodNumber',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.greenDark,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ],

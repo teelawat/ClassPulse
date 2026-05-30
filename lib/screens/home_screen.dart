@@ -589,6 +589,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return PastCard(
           item: item,
           onTap: () => _showClassDetail(item, dayIndex, itemIndex),
+          periodNumber: item.periodNumber,
         );
       case ClassType.current:
         final now = ScheduleManager.getSystemTime();
@@ -605,18 +606,62 @@ class _HomeScreenState extends State<HomeScreen> {
           item: item,
           remainingSeconds: remaining,
           onTap: () => _showClassDetail(item, dayIndex, itemIndex),
+          periodNumber: item.periodNumber,
         );
       case ClassType.next:
         return NextCard(
           item: item,
           onTap: () => _showClassDetail(item, dayIndex, itemIndex),
+          periodNumber: item.periodNumber,
         );
       case ClassType.normal:
         return NormalCard(
           item: item,
           onTap: () => _showClassDetail(item, dayIndex, itemIndex),
+          periodNumber: item.periodNumber,
         );
     }
+  }
+
+  Widget _buildBreakSeparator(ClassItem item) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: ShapeDecoration(
+        color: const Color(0xFFF8FAFC),
+        shape: SmoothRectangleBorder(
+          borderRadius: squircleRadius(12),
+          side: const BorderSide(color: AppColors.border, width: 1.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.coffee_outlined,
+            color: AppColors.textLight,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Text(
+            item.subject,
+            style: const TextStyle(
+              fontSize: 14.5,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textMedium,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            '${item.startTime} - ${item.endTime} น.',
+            style: const TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textLight,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildClassListForDay(int dayIndex) {
@@ -668,8 +713,13 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 104),
       itemCount: schedule.length,
       separatorBuilder: (context, index) => const SizedBox(height: 14),
-      itemBuilder: (context, index) =>
-          _buildClassCard(schedule[index], dayIndex, index),
+      itemBuilder: (context, index) {
+        final item = schedule[index];
+        if (item.isBreak) {
+          return _buildBreakSeparator(item);
+        }
+        return _buildClassCard(item, dayIndex, index);
+      },
     );
   }
 

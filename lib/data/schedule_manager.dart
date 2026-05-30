@@ -52,12 +52,37 @@ For each class, extract:
 - startTime (HH:mm format, e.g. "08:30")
 - endTime (HH:mm format, e.g. "09:20")
 - subject (subject name, include room number in parentheses if visible, e.g. "ฟิสิกส์ (ห้องปฏิบัติการ 2)")
-- teacher (teacher's name, e.g. "ครูอ้อย")
+- teacher (teacher's name, e.g. "ครูอ้อย". If it is a non-subject activity like homeroom, or a break like lunch, use an empty string or omit it)
+- periodNumber (integer representing the teaching period number from the timetable, e.g. 1, 2, 3. Important: Do NOT count non-subject activities like Homeroom, Assemblies, or Lunch Breaks as period numbers; set them to null/omit them)
+- isBreak (boolean. Set to true ONLY if the slot represents a break or lunch recess, e.g. "พักเที่ยง", "พักกลางวัน". For standard subjects or Homeroom, set to false)
 
 Format the output strictly as a JSON object matching this schema structure:
 {
   "monday": [
-    { "startTime": "08:30", "endTime": "09:20", "subject": "โฮมรูม (ห้อง 201)", "teacher": "ครูวรรณา" }
+    { 
+      "startTime": "08:30", 
+      "endTime": "09:00", 
+      "subject": "โฮมรูม", 
+      "teacher": "", 
+      "periodNumber": null,
+      "isBreak": false 
+    },
+    { 
+      "startTime": "09:00", 
+      "endTime": "09:50", 
+      "subject": "คณิตศาสตร์ (ห้อง 321)", 
+      "teacher": "ครูสมชาย", 
+      "periodNumber": 1,
+      "isBreak": false 
+    },
+    { 
+      "startTime": "12:00", 
+      "endTime": "13:00", 
+      "subject": "พักกลางวัน", 
+      "teacher": "", 
+      "periodNumber": null,
+      "isBreak": true 
+    }
   ],
   "tuesday": [],
   "wednesday": [],
@@ -70,8 +95,21 @@ Output only the JSON. Do not include markdown code block wrappers (like ```json)
 
   // ─── Detect colors and icons based on subject name ───────────────────────
 
-  static SubjectTheme detectSubjectTheme(String subject) {
+  static SubjectTheme detectSubjectTheme(String subject, {bool isBreak = false}) {
     final s = subject.toLowerCase();
+
+    if (isBreak ||
+        s.contains('พัก') ||
+        s.contains('break') ||
+        s.contains('lunch') ||
+        s.contains('recess')) {
+      return const SubjectTheme(
+        themeColor: AppColors.border,
+        cardColor: AppColors.surface,
+        textColor: AppColors.textLight,
+        iconName: 'break',
+      );
+    }
 
     if (s.contains('ฟิสิกส์') ||
         s.contains('เคมี') ||
@@ -367,9 +405,11 @@ Output only the JSON. Do not include markdown code block wrappers (like ```json)
         final startTime = rawClass['startTime'] as String? ?? '08:30';
         final endTime = rawClass['endTime'] as String? ?? '09:20';
         final subject = rawClass['subject'] as String? ?? 'วิชาเรียน';
-        final teacher = rawClass['teacher'] as String? ?? 'ครูผู้สอน';
+        final teacher = rawClass['teacher'] as String? ?? '';
+        final periodNumber = rawClass['periodNumber'] as int?;
+        final isBreak = rawClass['isBreak'] as bool? ?? false;
 
-        final theme = detectSubjectTheme(subject);
+        final theme = detectSubjectTheme(subject, isBreak: isBreak);
 
         ClassType cardType = ClassType.normal;
         if (i == 0) {
@@ -391,6 +431,8 @@ Output only the JSON. Do not include markdown code block wrappers (like ```json)
             cardColor: theme.cardColor,
             textColor: theme.textColor,
             iconName: theme.iconName,
+            periodNumber: periodNumber,
+            isBreak: isBreak,
           ),
         );
       }

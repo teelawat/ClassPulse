@@ -7,11 +7,13 @@ import '../../theme/app_theme.dart';
 class PastCard extends StatelessWidget {
   final ClassItem item;
   final VoidCallback? onTap;
+  final int? periodNumber;
 
   const PastCard({
     super.key,
     required this.item,
     this.onTap,
+    this.periodNumber,
   });
 
   @override
@@ -100,7 +102,24 @@ class PastCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    buildClassIcon(item.iconName, AppColors.textMuted, size: 32),
+                    if (periodNumber != null)
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: ShapeDecoration(
+                          color: AppColors.textMuted.withValues(alpha: 0.12),
+                          shape: SmoothRectangleBorder(borderRadius: squircleRadius(8)),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '$periodNumber',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textLight,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),

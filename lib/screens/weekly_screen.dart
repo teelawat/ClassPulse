@@ -785,6 +785,47 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
   }
 
   // Renders scrollable timeline of compact cards
+  Widget _buildBreakSeparator(ClassItem item) {
+    return Container(
+      height: 48,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: ShapeDecoration(
+        color: const Color(0xFFF8FAFC),
+        shape: SmoothRectangleBorder(
+          borderRadius: squircleRadius(12),
+          side: const BorderSide(color: AppColors.border, width: 1.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.coffee_outlined,
+            color: AppColors.textLight,
+            size: 18,
+          ),
+          const SizedBox(width: 10),
+          Text(
+            item.subject,
+            style: const TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textMedium,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            '${item.startTime} - ${item.endTime} น.',
+            style: const TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textLight,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildWeeklyClassListForDay(int dayIndex) {
     final List<ClassItem> rawSchedule = _weeklySchedule[dayIndex] ?? [];
     final List<ClassItem> schedule = ScheduleManager.getDynamicSchedule(rawSchedule, dayIndex);
@@ -832,10 +873,15 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
         if (index == 0) {
           return _buildBentoSummaryCard(dayIndex);
         }
+        final item = schedule[index - 1];
+        if (item.isBreak) {
+          return _buildBreakSeparator(item);
+        }
         return CompactCard(
-          item: schedule[index - 1],
+          item: item,
           onTap: () =>
-              _showClassDetail(schedule[index - 1], dayIndex, index - 1),
+              _showClassDetail(item, dayIndex, index - 1),
+          periodNumber: item.periodNumber,
         );
       },
     );

@@ -121,6 +121,8 @@ Widget buildClassIcon(String? iconName, Color color, {double size = 32, bool whi
       return Icon(Icons.palette_outlined, color: iconColor, size: size);
     case 'homeroom':
       return Icon(Icons.waving_hand_outlined, color: iconColor, size: size);
+    case 'break':
+      return Icon(Icons.coffee_outlined, color: iconColor, size: size);
     default:
       return Icon(Icons.school_outlined, color: iconColor, size: size);
   }

@@ -9,8 +9,14 @@ import '../../theme/app_theme.dart';
 class CompactCard extends StatelessWidget {
   final ClassItem item;
   final VoidCallback? onTap;
+  final int? periodNumber;
 
-  const CompactCard({super.key, required this.item, this.onTap});
+  const CompactCard({
+    super.key,
+    required this.item,
+    this.onTap,
+    this.periodNumber,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +24,6 @@ class CompactCard extends StatelessWidget {
     Color bodyColor;
     Color textColor;
     Color subtextColor;
-    Widget icon;
 
     switch (item.type) {
       case ClassType.past:
@@ -26,39 +31,46 @@ class CompactCard extends StatelessWidget {
         bodyColor = AppColors.surface;
         textColor = AppColors.textMuted;
         subtextColor = AppColors.textMuted;
-        icon = buildClassIcon(
-          item.iconName ?? 'homeroom',
-          AppColors.textMuted,
-          size: 20,
-        );
         break;
       case ClassType.current:
         borderColor = AppColors.green;
         bodyColor = AppColors.greenBg;
         textColor = AppColors.greenDark;
         subtextColor = const Color(0xFF15803D).withValues(alpha: 0.8);
-        icon = buildClassIcon(item.iconName, AppColors.green, size: 24);
         break;
       case ClassType.next:
         borderColor = AppColors.orange;
         bodyColor = AppColors.orangeLight;
         textColor = AppColors.orangeText;
         subtextColor = AppColors.orangeText.withValues(alpha: 0.8);
-        icon = buildClassIcon(item.iconName, AppColors.orangeDark, size: 22);
         break;
       case ClassType.normal:
         borderColor = item.themeColor ?? AppColors.blue;
         bodyColor = item.cardColor ?? AppColors.blue;
         textColor = item.textColor ?? Colors.white;
         subtextColor = textColor.withValues(alpha: 0.85);
-        icon = buildClassIcon(
-          item.iconName,
-          borderColor,
-          size: 20,
-          whiteColor: true,
-        );
         break;
     }
+
+    final periodWidget = periodNumber != null
+        ? Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: ShapeDecoration(
+              color: item.type == ClassType.normal
+                  ? Colors.white.withValues(alpha: 0.2)
+                  : borderColor.withValues(alpha: 0.12),
+              shape: SmoothRectangleBorder(borderRadius: squircleRadius(6)),
+            ),
+            child: Text(
+              '$periodNumber',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+          )
+        : const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,7 +167,7 @@ class CompactCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        icon,
+                        periodWidget,
                       ],
                     ),
                   ),

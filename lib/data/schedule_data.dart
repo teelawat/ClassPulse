@@ -44,10 +44,12 @@ final _mondaySchedule = [
     endTime: '09:20',
     subject: 'โฮมรูม (ห้อง 201)',
     teacher: 'ครูวรรณา',
+    periodNumber: null,
   ),
   ClassItem.current(
     subject: 'ฟิสิกส์ (ห้องปฏิบัติการ 2)',
     teacher: 'ครูอ้อย',
+    periodNumber: 1,
     tasks: const [
       ClassTask(title: 'ส่ง Lab Report คานดีด', type: TaskType.homework),
     ],
@@ -57,6 +59,7 @@ final _mondaySchedule = [
     endTime: '11:00',
     subject: 'ภาษาอังกฤษ (ห้อง 312)',
     teacher: 'ครูสุนีย์',
+    periodNumber: 2,
     tasks: const [
       ClassTask(title: 'สอบย่อยคำศัพท์ Unit 5', type: TaskType.quiz),
     ],
@@ -68,6 +71,15 @@ final _mondaySchedule = [
     teacher: 'ครูวิชัย',
     themeColor: AppColors.blue,
     cardColor: AppColors.blue,
+    periodNumber: 3,
+  ),
+  ClassItem(
+    startTime: '11:50',
+    endTime: '12:40',
+    subject: 'พักกลางวัน',
+    teacher: '',
+    type: ClassType.normal,
+    isBreak: true,
   ),
   ClassItem.normal(
     startTime: '12:40',
@@ -76,6 +88,7 @@ final _mondaySchedule = [
     teacher: 'ครูสมชาย',
     themeColor: AppColors.purple,
     cardColor: AppColors.purple,
+    periodNumber: 4,
   ),
 ];
 
@@ -114,10 +127,12 @@ List<ClassItem> _buildMockSchedule(int dayIndex) {
       endTime: '09:20',
       subject: 'โฮมรูม (ห้อง 201)',
       teacher: 'ครูวรรณา',
+      periodNumber: null,
     ),
     ClassItem.current(
       subject: '${_s(o)} (${_r(o)})',
       teacher: _t(o),
+      periodNumber: 1,
       tasks: currentClassTasks,
     ),
     ClassItem.next(
@@ -125,6 +140,7 @@ List<ClassItem> _buildMockSchedule(int dayIndex) {
       endTime: '11:00',
       subject: '${_s(o + 1)} (${_r(o + 1)})',
       teacher: _t(o + 1),
+      periodNumber: 2,
     ),
     ClassItem.normal(
       startTime: '11:00',
@@ -133,7 +149,16 @@ List<ClassItem> _buildMockSchedule(int dayIndex) {
       teacher: _t(o + 2),
       themeColor: AppColors.blue,
       cardColor: AppColors.blue,
+      periodNumber: 3,
       tasks: normalClass1Tasks,
+    ),
+    ClassItem(
+      startTime: '11:50',
+      endTime: '12:40',
+      subject: 'พักกลางวัน',
+      teacher: '',
+      type: ClassType.normal,
+      isBreak: true,
     ),
     ClassItem.normal(
       startTime: '12:40',
@@ -142,6 +167,7 @@ List<ClassItem> _buildMockSchedule(int dayIndex) {
       teacher: _t(o + 3),
       themeColor: AppColors.purple,
       cardColor: AppColors.purple,
+      periodNumber: 4,
     ),
   ];
 }
