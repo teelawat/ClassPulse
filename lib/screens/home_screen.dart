@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:figma_squircle/figma_squircle.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../data/schedule_data.dart';
 import '../data/schedule_manager.dart';
 import '../models/class_item.dart';
+import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/class_cards/current_card.dart';
 import '../widgets/class_cards/next_card.dart';
@@ -27,6 +30,9 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentTabIndex = 0; // 0 = Today, 1 = Weekly Schedule, etc.
   int _previousTabIndex = 0;
 
+  bool _notificationsEnabled = true;
+  int _notificationLeadMinutes = 5;
+
   double? _overlayX;
   double? _overlayY;
 
@@ -48,6 +54,16 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     int todayIndex = _getTodayWeekdayIndex();
     _selectedDayIndex = todayIndex == -1 ? 0 : todayIndex;
+
+    // Load notification state
+    _notificationsEnabled = NotificationService.enabled;
+    _notificationLeadMinutes = NotificationService.leadMinutes;
+
+    // Request permissions on mobile
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      NotificationService.requestPermissions();
+    }
+
     _startTimer();
     _loadSchedule();
   }
@@ -59,6 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _weeklySchedule = schedule;
         _isLoading = false;
       });
+      NotificationService.rescheduleAll(schedule);
     }
   }
 
@@ -66,6 +83,11 @@ class _HomeScreenState extends State<HomeScreen> {
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {});
+
+        // Active notification check for Windows
+        if (!kIsWeb && Platform.isWindows && timer.tick % 15 == 0) {
+          NotificationService.checkWindowsNotifications(_weeklySchedule);
+        }
       }
     });
   }
@@ -465,6 +487,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _weeklySchedule[dayIndex]![itemIndex] = updatedItem;
               });
               await ScheduleManager.saveWeeklySchedule(_weeklySchedule);
+              NotificationService.rescheduleAll(_weeklySchedule);
 
               if (!mounted || !context.mounted) return;
               setModalState(() {});
@@ -813,7 +836,127 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 24),
 
-          // Section 2: For Developers
+          // Section 2: Notification Settings
+          _buildSettingsSectionHeader('การแจ้งเตือน'),
+          Container(
+            decoration: ShapeDecoration(
+              color: const Color(0xFFF8FAFC),
+              shape: SmoothRectangleBorder(
+                borderRadius: squircleRadius(16),
+                side: const BorderSide(color: AppColors.border),
+              ),
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.notifications_active_outlined, color: AppColors.textMedium, size: 22),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'แจ้งเตือนคาบเรียน',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textDark,
+                              ),
+                            ),
+                            Text(
+                              'แจ้งเตือนเมื่อใกล้และถึงเวลาเรียน',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textLight,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch.adaptive(
+                        value: _notificationsEnabled,
+                        activeTrackColor: AppColors.primary,
+                        onChanged: (value) async {
+                          setState(() {
+                            _notificationsEnabled = value;
+                          });
+                          await NotificationService.saveSettings(
+                            isEnabled: value,
+                            leadMins: _notificationLeadMinutes,
+                            schedule: _weeklySchedule,
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                if (_notificationsEnabled) ...[
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.timer_outlined, color: AppColors.textMedium, size: 22),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Text(
+                            'เตือนล่วงหน้า',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                        ),
+                        PopupMenuButton<int>(
+                          initialValue: _notificationLeadMinutes,
+                          onSelected: (value) async {
+                            setState(() {
+                              _notificationLeadMinutes = value;
+                            });
+                            await NotificationService.saveSettings(
+                              isEnabled: _notificationsEnabled,
+                              leadMins: value,
+                              schedule: _weeklySchedule,
+                            );
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(value: 0, child: Text('ตรงเวลาพอดี')),
+                            const PopupMenuItem(value: 3, child: Text('ล่วงหน้า 3 นาที')),
+                            const PopupMenuItem(value: 5, child: Text('ล่วงหน้า 5 นาที')),
+                            const PopupMenuItem(value: 10, child: Text('ล่วงหน้า 10 นาที')),
+                            const PopupMenuItem(value: 15, child: Text('ล่วงหน้า 15 นาที')),
+                          ],
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _notificationLeadMinutes == 0
+                                    ? 'ตรงเวลา'
+                                    : '$_notificationLeadMinutes นาที',
+                                style: const TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const Icon(Icons.arrow_drop_down, color: AppColors.primary),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Section 3: For Developers
           _buildSettingsSectionHeader('สำหรับนักพัฒนาซอฟต์แวร์'),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
