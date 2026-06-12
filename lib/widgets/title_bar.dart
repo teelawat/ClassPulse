@@ -19,8 +19,16 @@ class AppTitleBar extends StatelessWidget {
       color: Colors.white,
       child: Row(
         children: [
-          const SizedBox(width: 14),
-          const Icon(Icons.school, size: 18, color: Color(0xFF1E6AF9)),
+          const SizedBox(width: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(5),
+            child: Image.asset(
+              'assets/icons/classpulse_icon.png',
+              width: 20,
+              height: 20,
+              fit: BoxFit.cover,
+            ),
+          ),
           const SizedBox(width: 8),
           const Text(
             'ClassPulse',

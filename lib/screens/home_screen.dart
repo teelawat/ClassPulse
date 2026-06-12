@@ -7,6 +7,7 @@ import '../data/schedule_data.dart';
 import '../data/schedule_manager.dart';
 import '../models/class_item.dart';
 import '../services/notification_service.dart';
+import '../services/widget_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/class_cards/current_card.dart';
 import '../widgets/class_cards/next_card.dart';
@@ -76,6 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _isLoading = false;
       });
       NotificationService.rescheduleAll(schedule);
+      WidgetService.updateWidgets(schedule);
     }
   }
 
@@ -87,6 +89,11 @@ class _HomeScreenState extends State<HomeScreen> {
         // Active notification check for Windows
         if (!kIsWeb && Platform.isWindows && timer.tick % 15 == 0) {
           NotificationService.checkWindowsNotifications(_weeklySchedule);
+        }
+
+        // Active widget updates for Android (every 30 seconds to keep countdown fresh)
+        if (!kIsWeb && Platform.isAndroid && timer.tick % 30 == 0) {
+          WidgetService.updateWidgets(_weeklySchedule);
         }
       }
     });
@@ -162,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'รายละเอียดวิชาเรียน',
+                        'ข้อมูลคาบนี้',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -179,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         icon: const Icon(Icons.edit_outlined, size: 16),
                         label: const Text(
-                          'แก้ไขข้อมูล',
+                          'แก้',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
@@ -211,7 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'ผู้สอน: ${currentItem.teacher}',
+                        currentItem.teacher,
                         style: const TextStyle(
                           fontSize: 16,
                           color: Color(0xFF475569),
@@ -229,7 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'เวลาเรียน: ${currentItem.startTime} - ${currentItem.endTime} น.',
+                        '${currentItem.startTime} – ${currentItem.endTime} น.',
                         style: const TextStyle(
                           fontSize: 16,
                           color: Color(0xFF475569),
@@ -253,7 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'ภารกิจและการบ้าน (${currentItem.tasks.length})',
+                            'งานที่ต้องทำ (${currentItem.tasks.length})',
                             style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -271,7 +278,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         icon: const Icon(Icons.add, size: 16),
                         label: const Text(
-                          'เพิ่มภารกิจ',
+                          '+ เพิ่ม',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
@@ -289,7 +296,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     const Padding(
                       padding: EdgeInsets.only(left: 28, top: 4, bottom: 12),
                       child: Text(
-                        'ไม่มีการบ้านหรือสอบย่อยในคาบนี้ ✨',
+                        'ว่างอยู่ ไม่มีอะไรต้องทำ',
                         style: TextStyle(
                           fontSize: 14,
                           color: AppColors.textLight,
@@ -353,6 +360,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ScheduleManager.saveWeeklySchedule(
                                   _weeklySchedule,
                                 );
+                                WidgetService.updateWidgets(_weeklySchedule);
                                 setModalState(() {});
                               },
                               tooltip: 'เสร็จสิ้นภารกิจ',
@@ -374,7 +382,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                       child: const Text(
-                        'ปิดหน้าต่าง',
+                        'เสร็จแล้ว',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -407,7 +415,7 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('แก้ไขข้อมูลวิชา'),
+        title: const Text('แก้ข้อมูล'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -415,7 +423,7 @@ class _HomeScreenState extends State<HomeScreen> {
               TextField(
                 controller: subjectController,
                 decoration: const InputDecoration(
-                  labelText: 'ชื่อวิชา / ห้องเรียน',
+                  labelText: 'ชื่อวิชา',
                   border: OutlineInputBorder(),
                 ),
                 autofocus: true,
@@ -424,7 +432,7 @@ class _HomeScreenState extends State<HomeScreen> {
               TextField(
                 controller: teacherController,
                 decoration: const InputDecoration(
-                  labelText: 'ครูผู้สอน',
+                  labelText: 'ชื่อครู',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -488,12 +496,13 @@ class _HomeScreenState extends State<HomeScreen> {
               });
               await ScheduleManager.saveWeeklySchedule(_weeklySchedule);
               NotificationService.rescheduleAll(_weeklySchedule);
+              WidgetService.updateWidgets(_weeklySchedule);
 
               if (!mounted || !context.mounted) return;
               setModalState(() {});
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('บันทึกข้อมูลวิชาแล้ว')),
+                const SnackBar(content: Text('บันทึกแล้ว ✓')),
               );
             },
             child: const Text('บันทึก'),
@@ -518,7 +527,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('เพิ่มการบ้านหรือสอบ'),
+              title: const Text('บันทึกงาน'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -562,7 +571,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   TextField(
                     controller: titleController,
                     decoration: const InputDecoration(
-                      labelText: 'รายละเอียดสั้นๆ (เช่น ทำแบบฝึกหัดหน้า 5)',
+                      labelText: 'งานคืออะไร?',
                       border: OutlineInputBorder(),
                     ),
                     autofocus: true,
@@ -593,10 +602,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     });
 
                     ScheduleManager.saveWeeklySchedule(_weeklySchedule);
+                    WidgetService.updateWidgets(_weeklySchedule);
                     setModalState(() {});
                     Navigator.pop(context);
                   },
-                  child: const Text('บันทึก'),
+                  child: const Text('เพิ่ม'),
                 ),
               ],
             );
@@ -711,7 +721,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 14),
               const Text(
-                'ไม่มีตารางเรียนในวันนี้',
+                'วันนี้ไม่มีเรียน',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
@@ -719,10 +729,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'นำเข้าตารางเรียนผ่านปุ่ม AI ในหน้าโปรไฟล์หรือตารางเรียนแบบสัปดาห์',
-                style: TextStyle(fontSize: 12.5, color: AppColors.textLight),
-              ),
+              const SizedBox.shrink(),
             ],
           ),
         ),
@@ -790,25 +797,17 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'ตั้งค่าการใช้งาน',
+            'ตั้งค่า',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: AppColors.textDark,
             ),
           ),
-          const SizedBox(height: 4),
-          const Text(
-            'จัดการตารางเรียนและตั้งค่าจำลองเวลาของแอปพลิเคชัน',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textLight,
-            ),
-          ),
           const SizedBox(height: 24),
           
           // Section 1: Schedule Management
-          _buildSettingsSectionHeader('จัดการตารางเรียน'),
+          _buildSettingsSectionHeader('ตาราง'),
           Container(
             decoration: ShapeDecoration(
               color: const Color(0xFFF8FAFC),
@@ -821,12 +820,12 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 _buildSettingsMenuItem(
                   Icons.add_photo_alternate_outlined,
-                  'นำเข้าตารางเรียนด้วย AI',
+                  'อัปโหลดรูปตาราง',
                   onTap: () => _navigateToImport(context),
                 ),
                 _buildSettingsMenuItem(
                   Icons.delete_outline,
-                  'ล้างข้อมูลตารางเรียน',
+                  'ล้างตาราง',
                   color: Colors.red,
                   onTap: _clearSchedule,
                   isLast: true,
@@ -837,7 +836,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 24),
 
           // Section 2: Notification Settings
-          _buildSettingsSectionHeader('การแจ้งเตือน'),
+          _buildSettingsSectionHeader('แจ้งเตือน'),
           Container(
             decoration: ShapeDecoration(
               color: const Color(0xFFF8FAFC),
@@ -859,18 +858,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'แจ้งเตือนคาบเรียน',
+                              'แจ้งเตือนก่อนเข้าคาบ',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textDark,
-                              ),
-                            ),
-                            Text(
-                              'แจ้งเตือนเมื่อใกล้และถึงเวลาเรียน',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textLight,
                               ),
                             ),
                           ],
@@ -957,7 +949,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 24),
 
           // Section 3: For Developers
-          _buildSettingsSectionHeader('สำหรับนักพัฒนาซอฟต์แวร์'),
+          _buildSettingsSectionHeader('โหมดทดสอบ'),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: ShapeDecoration(
@@ -979,7 +971,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'โหมดตั้งเวลาทดสอบ',
+                            'จำลองเวลา',
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -987,7 +979,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           Text(
-                            'เปิดหน้าต่างจำลองวันเวลาสำหรับตรวจสอบ UI คาบเรียน',
+                            'ทดสอบ UI ตามเวลาต่างๆ',
                             style: TextStyle(
                               fontSize: 12,
                               color: AppColors.textLight,
@@ -1011,6 +1003,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           int todayIndex = _getTodayWeekdayIndex();
                           _selectedDayIndex = todayIndex == -1 ? 0 : todayIndex;
                         });
+                        WidgetService.updateWidgets(_weeklySchedule);
                       },
                     ),
                   ],
@@ -1035,18 +1028,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'ทดสอบส่งการแจ้งเตือน',
+                                'ส่งแจ้งเตือนทดสอบ',
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.textDark,
-                                ),
-                              ),
-                              Text(
-                                'ส่งแจ้งเตือนจำลองไปยังอุปกรณ์นี้ทันที',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.textLight,
                                 ),
                               ),
                             ],
@@ -1072,10 +1058,9 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Text(
         title,
         style: const TextStyle(
-          fontSize: 13,
+          fontSize: 12,
           fontWeight: FontWeight.bold,
           color: AppColors.primary,
-          letterSpacing: 0.5,
         ),
       ),
     );
@@ -1125,6 +1110,7 @@ class _HomeScreenState extends State<HomeScreen> {
       int todayIndex = _getTodayWeekdayIndex();
       _selectedDayIndex = todayIndex == -1 ? 0 : todayIndex;
     });
+    WidgetService.updateWidgets(_weeklySchedule);
   }
 
   Widget _buildTimeTravelSimulatorOverlay() {
@@ -1411,7 +1397,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 28),
             const Text(
-              'ยังไม่มีตารางเรียนในระบบ 📅',
+              'ยังไม่มีตาราง',
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -1421,7 +1407,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 10),
             const Text(
-              'อัปโหลดภาพตารางเรียนของคุณให้ระบบ AI แปลงข้อมูลรายวิชา ห้องเรียน และเวลาเรียนแบบอัตโนมัติในไม่กี่วินาที',
+              'ถ่ายรูปตารางเรียนของคุณ แล้ว AI จะอ่านให้เอง',
               style: TextStyle(
                 fontSize: 14.5,
                 color: AppColors.textLight,
@@ -1439,7 +1425,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.white,
                 ),
                 label: const Text(
-                  'นำเข้าตารางเรียนด้วย AI',
+                  'อัปโหลดรูปตาราง',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -1458,7 +1444,7 @@ class _HomeScreenState extends State<HomeScreen> {
             TextButton(
               onPressed: _populateMockSchedule,
               child: const Text(
-                'หรือสร้างตารางเรียนทดสอบ (Mock Data) 🪄',
+                'ลองดูตัวอย่างก่อน',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -1493,9 +1479,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('ล้างข้อมูลตารางเรียน'),
+        title: const Text('ล้างตาราง'),
         content: const Text(
-          'คุณต้องการลบข้อมูลตารางเรียนทั้งหมดใช่หรือไม่? ข้อมูลจะไม่สามารถกู้คืนได้',
+          'ลบตารางเรียนทั้งหมดเลยนะ? กู้คืนไม่ได้',
         ),
         actions: [
           TextButton(
@@ -1505,7 +1491,7 @@ class _HomeScreenState extends State<HomeScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('ลบข้อมูล'),
+            child: const Text('ลบเลย'),
           ),
         ],
       ),

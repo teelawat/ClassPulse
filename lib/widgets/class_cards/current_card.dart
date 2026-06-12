@@ -84,7 +84,7 @@ class CurrentCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'กำลังเรียนอยู่',
+                  'คาบนี้',
                   style: TextStyle(
                     color: AppColors.greenDark,
                     fontWeight: FontWeight.bold,

@@ -2,6 +2,8 @@ import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 import '../data/schedule_manager.dart';
 import '../models/class_item.dart';
+import '../services/notification_service.dart';
+import '../services/widget_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/class_cards/compact_card.dart';
 import 'import_screen.dart';
@@ -46,6 +48,8 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
         _weeklySchedule = schedule;
         _isLoading = false;
       });
+      NotificationService.rescheduleAll(schedule);
+      WidgetService.updateWidgets(schedule);
     }
   }
 
@@ -132,7 +136,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'รายละเอียดวิชาเรียน',
+                        'ข้อมูลคาบนี้',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -149,7 +153,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                         ),
                         icon: const Icon(Icons.edit_outlined, size: 16),
                         label: const Text(
-                          'แก้ไขข้อมูล',
+                          'แก้',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
@@ -181,7 +185,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'ผู้สอน: ${currentItem.teacher}',
+                        currentItem.teacher,
                         style: const TextStyle(
                           fontSize: 16,
                           color: Color(0xFF475569),
@@ -199,7 +203,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'เวลาเรียน: ${currentItem.startTime} - ${currentItem.endTime} น.',
+                        '${currentItem.startTime} – ${currentItem.endTime} น.',
                         style: const TextStyle(
                           fontSize: 16,
                           color: Color(0xFF475569),
@@ -223,7 +227,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'ภารกิจและการบ้าน (${currentItem.tasks.length})',
+                            'งานที่ต้องทำ (${currentItem.tasks.length})',
                             style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -241,7 +245,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                         ),
                         icon: const Icon(Icons.add, size: 16),
                         label: const Text(
-                          'เพิ่มภารกิจ',
+                          '+ เพิ่ม',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
@@ -259,7 +263,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                     const Padding(
                       padding: EdgeInsets.only(left: 28, top: 4, bottom: 12),
                       child: Text(
-                        'ไม่มีการบ้านหรือสอบย่อยในคาบนี้ ✨',
+                        'ว่างอยู่ ไม่มีอะไรต้องทำ',
                         style: TextStyle(
                           fontSize: 14,
                           color: AppColors.textLight,
@@ -323,6 +327,8 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                                 ScheduleManager.saveWeeklySchedule(
                                   _weeklySchedule,
                                 );
+                                NotificationService.rescheduleAll(_weeklySchedule);
+                                WidgetService.updateWidgets(_weeklySchedule);
                                 setModalState(() {});
                               },
                               tooltip: 'เสร็จสิ้นภารกิจ',
@@ -344,7 +350,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                       child: const Text(
-                        'ปิดหน้าต่าง',
+                        'เสร็จแล้ว',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -377,7 +383,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('แก้ไขข้อมูลวิชา'),
+        title: const Text('แก้ข้อมูล'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -385,7 +391,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
               TextField(
                 controller: subjectController,
                 decoration: const InputDecoration(
-                  labelText: 'ชื่อวิชา / ห้องเรียน',
+                  labelText: 'ชื่อวิชา',
                   border: OutlineInputBorder(),
                 ),
                 autofocus: true,
@@ -394,7 +400,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
               TextField(
                 controller: teacherController,
                 decoration: const InputDecoration(
-                  labelText: 'ครูผู้สอน',
+                  labelText: 'ชื่อครู',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -457,12 +463,14 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                 _weeklySchedule[dayIndex]![itemIndex] = updatedItem;
               });
               await ScheduleManager.saveWeeklySchedule(_weeklySchedule);
+              NotificationService.rescheduleAll(_weeklySchedule);
+              WidgetService.updateWidgets(_weeklySchedule);
 
               if (!mounted || !context.mounted) return;
               setModalState(() {});
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('บันทึกข้อมูลวิชาแล้ว')),
+                const SnackBar(content: Text('บันทึกแล้ว ✓')),
               );
             },
             child: const Text('บันทึก'),
@@ -487,7 +495,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('เพิ่มการบ้านหรือสอบ'),
+              title: const Text('บันทึกงาน'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -531,7 +539,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                   TextField(
                     controller: titleController,
                     decoration: const InputDecoration(
-                      labelText: 'รายละเอียดสั้นๆ (เช่น ทำแบบฝึกหัดหน้า 5)',
+                      labelText: 'งานคืออะไร?',
                       border: OutlineInputBorder(),
                     ),
                     autofocus: true,
@@ -562,10 +570,12 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
                     });
 
                     ScheduleManager.saveWeeklySchedule(_weeklySchedule);
+                    NotificationService.rescheduleAll(_weeklySchedule);
+                    WidgetService.updateWidgets(_weeklySchedule);
                     setModalState(() {});
                     Navigator.pop(context);
                   },
-                  child: const Text('บันทึก'),
+                  child: const Text('เพิ่ม'),
                 ),
               ],
             );
@@ -709,12 +719,12 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
     }
 
     final totalTasks = hwCount + quizCount;
-    String taskSummaryText = 'ไม่มีการบ้านหรือสอบในวันนี้ ✨';
+    String taskSummaryText = 'วันนี้ไม่มีอะไรค้างอยู่';
     if (totalTasks > 0) {
       List<String> parts = [];
       if (hwCount > 0) parts.add('การบ้าน $hwCount ชิ้น');
       if (quizCount > 0) parts.add('สอบย่อย $quizCount วิชา');
-      taskSummaryText = 'มีงานต้องเคลียร์: ${parts.join(" และ ")} 📝';
+      taskSummaryText = 'ต้องทำ: ${parts.join("และ")} 📝';
     }
 
     // Determine a subtle tint depending on tasks
@@ -758,7 +768,7 @@ class _WeeklyScreenState extends State<WeeklyScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'วันนี้เรียน ${schedule.length} วิชา • เลิก $lastClassEndTime น.',
+                  'วันนี้เรียน ${schedule.length} วิชา, เลิก $lastClassEndTime น.',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,

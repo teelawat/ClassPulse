@@ -11,10 +11,10 @@ class FloatingNavBar extends StatelessWidget {
   final ValueChanged<int> onTabChanged;
 
   static const _items = [
-    _NavItem(icon: Icons.explore_outlined, activeIcon: Icons.explore, label: 'Today'),
-    _NavItem(icon: Icons.calendar_month_outlined, activeIcon: Icons.calendar_month, label: 'Schedule'),
-    _NavItem(icon: Icons.notifications_none_outlined, activeIcon: Icons.notifications, label: 'Alerts'),
-    _NavItem(icon: Icons.settings_outlined, activeIcon: Icons.settings, label: 'Settings'),
+    _NavItem(icon: Icons.explore_outlined, activeIcon: Icons.explore, label: 'วันนี้'),
+    _NavItem(icon: Icons.calendar_month_outlined, activeIcon: Icons.calendar_month, label: 'ตาราง'),
+    _NavItem(icon: Icons.notifications_none_outlined, activeIcon: Icons.notifications, label: 'แจ้งเตือน'),
+    _NavItem(icon: Icons.settings_outlined, activeIcon: Icons.settings, label: 'ตั้งค่า'),
   ];
 
   const FloatingNavBar({

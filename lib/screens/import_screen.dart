@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../data/schedule_manager.dart';
 import '../models/class_item.dart';
+import '../services/notification_service.dart';
+import '../services/widget_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/title_bar.dart';
 
@@ -269,6 +271,8 @@ class _ImportScreenState extends State<ImportScreen> {
   Future<void> _saveSchedule() async {
     if (_parsedWeek == null) return;
     await ScheduleManager.saveWeeklySchedule(_parsedWeek!);
+    NotificationService.rescheduleAll(_parsedWeek!);
+    WidgetService.updateWidgets(_parsedWeek!);
     if (mounted) {
       Navigator.pop(context, true); // Return true to notify parent of changes
     }
