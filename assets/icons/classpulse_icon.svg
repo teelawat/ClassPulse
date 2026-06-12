@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1247C8" />
+      <stop offset="100%" style="stop-color:#2979FF" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect x="0" y="0" width="1024" height="1024" rx="230" ry="230" fill="url(#bgGrad)" />
+
+  <!--
+    LAYOUT: Timeline-style schedule list
+    - Bullet dots on LEFT at x=176 (cx)
+    - Vertical connecting line between dots
+    - Bars all SAME WIDTH (x=224 to x=876) = width 652
+    - 3 bars: h=104 / 128(active) / 104, gaps=40px
+    - Total height: 104+40+128+40+104 = 416
+    - Start Y: (1024-416)/2 = 304
+  -->
+
+  <!-- VERTICAL TIMELINE LINE (draw first, bars cover it) -->
+  <line x1="176" y1="304" x2="176" y2="724"
+    stroke="white" stroke-width="5" stroke-opacity="0.25"
+    stroke-linecap="round"
+  />
+
+  <!-- ======== BAR 1 — past class (dim) ======== -->
+  <rect x="224" y="304" width="652" height="104"
+    rx="52" ry="52"
+    fill="white" opacity="0.38"
+  />
+  <!-- Bullet dot 1 -->
+  <circle cx="176" cy="356" r="22"
+    fill="white" opacity="0.40"
+  />
+
+  <!-- ======== BAR 2 — ACTIVE CLASS (full bright) ======== -->
+  <rect x="224" y="448" width="652" height="128"
+    rx="64" ry="64"
+    fill="white" opacity="1.0"
+  />
+  <!-- Bullet dot 2 — FILLED BLUE = current/live indicator -->
+  <circle cx="176" cy="512" r="30"
+    fill="#1E6AF9"
+  />
+  <!-- Inner white ring (makes the dot pop) -->
+  <circle cx="176" cy="512" r="16"
+    fill="white"
+  />
+  <!-- Tiny blue center -->
+  <circle cx="176" cy="512" r="6"
+    fill="#60A5FA"
+  />
+
+  <!-- ======== BAR 3 — next class (dim) ======== -->
+  <rect x="224" y="620" width="652" height="104"
+    rx="52" ry="52"
+    fill="white" opacity="0.36"
+  />
+  <!-- Bullet dot 3 -->
+  <circle cx="176" cy="672" r="22"
+    fill="white" opacity="0.38"
+  />
+
+</svg>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>SVG to PNG Converter</title></head>
+<body>
+<canvas id="c" width="1024" height="1024" style="display:none"></canvas>
+<img id="svgImg" style="display:none">
+<p id="status">Loading...</p>
+<a id="downloadLink" style="display:none">Download PNG</a>
+<script>
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const img = new Image();
+  
+  // Load SVG as image
+  img.onload = function() {
+    ctx.drawImage(img, 0, 0, 1024, 1024);
+    
+    // Get PNG data URL
+    const pngDataUrl = canvas.toDataURL('image/png');
+    
+    // Show download link
+    const link = document.getElementById('downloadLink');
+    link.href = pngDataUrl;
+    link.download = 'classpulse_icon.png';
+    link.style.display = 'block';
+    link.textContent = 'Download classpulse_icon.png';
+    
+    document.getElementById('status').textContent = 'Done! PNG ready.';
+    
+    // Auto-trigger download
+    link.click();
+  };
+  
+  img.onerror = function(e) {
+    document.getElementById('status').textContent = 'Error loading SVG: ' + e;
+  };
+  
+  // Load SVG file
+  img.src = 'classpulse_icon.svg?' + Date.now();
+</script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>ClassPulse Icon Preview</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0f172a;
+      font-family: system-ui, sans-serif;
+      color: white;
+      padding: 40px;
+    }
+    h1 { font-size: 28px; margin-bottom: 8px; color: #60A5FA; }
+    p { color: #94A3B8; margin-bottom: 40px; font-size: 14px; }
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 32px;
+      align-items: flex-end;
+    }
+    .card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .label {
+      font-size: 13px;
+      color: #64748B;
+    }
+    .bg-white { background: white; border-radius: 12px; padding: 8px; }
+    .bg-grey  { background: #CBD5E1; border-radius: 12px; padding: 8px; }
+  </style>
+</head>
+<body>
+  <h1>ClassPulse — Logo Icon Preview</h1>
+  <p>ไอคอนลายเส้น Pulse Wave บน Gradient น้ำเงิน · ดู 5 ขนาดและ background</p>
+
+  <div class="grid">
+
+    <!-- 512px on dark -->
+    <div class="card">
+      <img src="classpulse_icon.svg" width="180" height="180" style="border-radius:40px;">
+      <span class="label">180px · dark bg</span>
+    </div>
+
+    <!-- 128px on dark -->
+    <div class="card">
+      <img src="classpulse_icon.svg" width="128" height="128" style="border-radius:28px;">
+      <span class="label">128px · dark bg</span>
+    </div>
+
+    <!-- 96px on dark -->
+    <div class="card">
+      <img src="classpulse_icon.svg" width="96" height="96" style="border-radius:22px;">
+      <span class="label">96px · dark bg</span>
+    </div>
+
+    <!-- 64px on dark -->
+    <div class="card">
+      <img src="classpulse_icon.svg" width="64" height="64" style="border-radius:14px;">
+      <span class="label">64px · dark bg</span>
+    </div>
+
+    <!-- 48px on dark -->
+    <div class="card">
+      <img src="classpulse_icon.svg" width="48" height="48" style="border-radius:10px;">
+      <span class="label">48px · dark bg</span>
+    </div>
+
+    <!-- 32px on dark -->
+    <div class="card">
+      <img src="classpulse_icon.svg" width="32" height="32" style="border-radius:7px;">
+      <span class="label">32px · dark bg</span>
+    </div>
+
+  </div>
+
+  <br><br>
+
+  <div class="grid">
+    <!-- on white bg -->
+    <div class="card bg-white">
+      <img src="classpulse_icon.svg" width="128" height="128" style="border-radius:28px;">
+      <span class="label" style="color:#475569">128px · white bg</span>
+    </div>
+    <!-- on grey bg -->
+    <div class="card bg-grey">
+      <img src="classpulse_icon.svg" width="128" height="128" style="border-radius:28px;">
+      <span class="label" style="color:#475569">128px · grey bg</span>
+    </div>
+  </div>
+
+</body>
+</html>
