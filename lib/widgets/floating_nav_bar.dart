@@ -25,28 +25,35 @@ class FloatingNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
-      height: 66,
-      decoration: ShapeDecoration(
-        color: Colors.white,
-        shape: SmoothRectangleBorder(borderRadius: squircleRadius(22)),
-        shadows: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: List.generate(
-          _items.length,
-          (i) => _NavButton(
-            item: _items[i],
-            isSelected: i == currentIndex,
-            onTap: () => onTabChanged(i),
+    // In edge-to-edge mode the system nav bar is transparent — we must
+    // push the floating bar above it using the bottom view padding.
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomPadding),
+      child: Container(
+        margin: const EdgeInsets.only(left: 24, right: 24, bottom: 16),
+        height: 66,
+        decoration: ShapeDecoration(
+          color: Colors.white,
+          shape: SmoothRectangleBorder(borderRadius: squircleRadius(22)),
+          shadows: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: List.generate(
+            _items.length,
+            (i) => _NavButton(
+              item: _items[i],
+              isSelected: i == currentIndex,
+              onTap: () => onTabChanged(i),
+            ),
           ),
         ),
       ),

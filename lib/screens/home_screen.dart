@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../data/schedule_data.dart';
 import '../data/schedule_manager.dart';
 import '../models/class_item.dart';
@@ -1534,9 +1535,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Stack(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: Color(0x00000001),
+        systemNavigationBarDividerColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarContrastEnforced: false,
+        systemStatusBarContrastEnforced: false,
+      ),
+      child: Scaffold(
+        extendBody: true,
+        body: SafeArea(
+          bottom: false,
+          child: Stack(
           children: [
             Column(
               children: [
@@ -1589,19 +1602,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            // White Linear Gradient Layer fading upwards from 80% opacity
+            // White gradient fades upward — covers system nav bar in edge-to-edge mode
             Positioned(
               left: 0,
               right: 0,
               bottom: 0,
               child: Container(
-                height: 115,
+                height: 160,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
                     colors: [
-                      Colors.white.withValues(alpha: 0.8),
+                      Colors.white.withValues(alpha: 0.95),
                       Colors.white.withValues(alpha: 0.0),
                     ],
                   ),
@@ -1631,6 +1644,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _buildTimeTravelSimulatorOverlay(),
           ],
         ),
+      ),
       ),
     );
   }
