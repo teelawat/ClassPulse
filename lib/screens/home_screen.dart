@@ -60,10 +60,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _notificationsEnabled = NotificationService.enabled;
     _notificationLeadMinutes = NotificationService.leadMinutes;
 
-    // Request permissions on mobile
-    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-      NotificationService.requestPermissions();
-    }
+    // Note: permission request is handled inside NotificationService.init()
+    // which is called at app startup in main.dart
 
     _startTimer();
     _loadSchedule();

@@ -51,11 +51,13 @@ class NotificationService {
         const AndroidInitializationSettings initializationSettingsAndroid =
             AndroidInitializationSettings('@mipmap/ic_launcher');
 
+        // Request all iOS permissions on initialization so the system dialog
+        // appears as early as possible (iOS requires explicit user consent).
         const DarwinInitializationSettings initializationSettingsDarwin =
             DarwinInitializationSettings(
-          requestAlertPermission: false,
-          requestBadgePermission: false,
-          requestSoundPermission: false,
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
         );
 
         const InitializationSettings initializationSettings = InitializationSettings(
@@ -69,6 +71,10 @@ class NotificationService {
             debugPrint('Notification clicked: ${details.payload}');
           },
         );
+
+        // Request Android POST_NOTIFICATIONS permission (Android 13+ / API 33+)
+        // and iOS UNUserNotificationCenter authorization right after init.
+        await requestPermissions();
       } catch (e) {
         debugPrint('Error initializing flutter_local_notifications: $e');
       }

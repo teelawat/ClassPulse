@@ -1,7 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- Basic notification posting (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Exact alarm scheduling — required for zonedSchedule() -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <!-- Fallback for Android 12+ when SCHEDULE_EXACT_ALARM is not granted -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
+    <!-- Keep CPU awake while delivering alarm -->
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <!-- Re-register alarms after device reboot -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <application
         android:label="ClassPulse"
@@ -29,6 +36,29 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <!-- ─────────────────────────────────────────────────────────────────
+             flutter_local_notifications: AlarmManager receivers
+             These MUST be present for zonedSchedule() to work correctly.
+             ───────────────────────────────────────────────────────────────── -->
+
+        <!-- Fires the scheduled notification at the exact alarm time -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+            android:exported="false"/>
+
+        <!-- Re-schedules all alarms after device reboot or app update -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
+        </receiver>
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <!-- Current Class Widget -->
